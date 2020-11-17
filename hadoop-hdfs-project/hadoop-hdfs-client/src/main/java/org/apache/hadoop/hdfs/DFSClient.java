@@ -183,8 +183,8 @@ import org.apache.hadoop.util.DataChecksum;
 import org.apache.hadoop.util.DataChecksum.Type;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.Time;
-import org.apache.htrace.core.TraceScope;
-import org.apache.htrace.core.Tracer;
+import org.apache.hadoop.tracing.TraceScope;
+import org.apache.hadoop.tracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -978,7 +978,7 @@ public class DFSClient implements java.io.Closeable, RemotePeerFactory,
           queryDatanodesForHdfsBlocksMetadata(conf, datanodeBlocks,
               getConf().getFileBlockStorageLocationsNumThreads(),
               getConf().getFileBlockStorageLocationsTimeoutMs(),
-              getConf().isConnectToDnViaHostname(), tracer, scope.getSpanId());
+              getConf().isConnectToDnViaHostname(), tracer, scope.getSpan());
       if (LOG.isTraceEnabled()) {
         LOG.trace("metadata returned: "
             + Joiner.on("\n").withKeyValueSeparator("=").join(metadatas));

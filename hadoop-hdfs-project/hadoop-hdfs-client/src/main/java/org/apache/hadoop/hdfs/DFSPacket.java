@@ -27,9 +27,9 @@ import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.hdfs.protocol.HdfsConstants;
 import org.apache.hadoop.hdfs.protocol.datatransfer.PacketHeader;
 import org.apache.hadoop.hdfs.util.ByteArrayManager;
-import org.apache.htrace.core.Span;
-import org.apache.htrace.core.SpanId;
-import org.apache.htrace.core.TraceScope;
+import org.apache.hadoop.tracing.TraceScope;
+import org.apache.hadoop.tracing.Span;
+import io.opentracing.SpanContext;
 
 /****************************************************************
  * DFSPacket is used by DataStreamer and DFSOutputStream.
@@ -40,7 +40,7 @@ import org.apache.htrace.core.TraceScope;
 @InterfaceAudience.Private
 class DFSPacket {
   public static final long HEART_BEAT_SEQNO = -1L;
-  private static SpanId[] EMPTY = new SpanId[0];
+  private static SpanContext[] EMPTY = new SpanContext[0];
   private final long seqno; // sequence number of buffer in block
   private final long offsetInBlock; // offset in block
   private boolean syncBlock; // this packet forces the current block to disk
@@ -67,9 +67,9 @@ class DFSPacket {
   private int checksumPos;
   private final int dataStart;
   private int dataPos;
-  private SpanId[] traceParents = EMPTY;
+  private SpanContext[] traceParents = EMPTY;
   private int traceParentsUsed;
-  private TraceScope scope;
+  private Span span;
 
   /**
    * Create a new packet.
@@ -292,11 +292,11 @@ class DFSPacket {
     if (span == null) {
       return;
     }
-    addTraceParent(span.getSpanId());
+    addTraceParent(span.context());
   }
 
-  public void addTraceParent(SpanId id) {
-    if (!id.isValid()) {
+  public void addTraceParent(SpanContext ctx) {
+    if (ctx == null) {
       return;
     }
     if (traceParentsUsed == traceParents.length) {
@@ -304,7 +304,7 @@ class DFSPacket {
           traceParents.length * 2;
       traceParents = Arrays.copyOf(traceParents, newLength);
     }
-    traceParents[traceParentsUsed] = id;
+    traceParents[traceParentsUsed] = ctx;
     traceParentsUsed++;
   }
 
@@ -315,17 +315,17 @@ class DFSPacket {
    *
    * Protected by the DFSOutputStream dataQueue lock.
    */
-  public SpanId[] getTraceParents() {
+  public SpanContext[] getTraceParents() {
     // Remove duplicates from the array.
     int len = traceParentsUsed;
     Arrays.sort(traceParents, 0, len);
     int i = 0, j = 0;
-    SpanId prevVal = SpanId.INVALID;
+    SpanContext prevVal = null;
     while (true) {
       if (i == len) {
         break;
       }
-      SpanId val = traceParents[i];
+      SpanContext val = traceParents[i];
       if (!val.equals(prevVal)) {
         traceParents[j] = val;
         j++;
@@ -340,11 +340,11 @@ class DFSPacket {
     return traceParents;
   }
 
-  public void setTraceScope(TraceScope scope) {
-    this.scope = scope;
+  public void setSpan(Span span) {
+    this.span = span;
   }
 
-  public TraceScope getTraceScope() {
-    return scope;
+  public Span getSpan() {
+    return span;
   }
 }

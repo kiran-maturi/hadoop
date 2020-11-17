@@ -87,8 +87,8 @@ import org.apache.hadoop.util.IdentityHashStore;
 import org.apache.hadoop.util.StopWatch;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.htrace.core.SpanId;
-import org.apache.htrace.core.TraceScope;
-import org.apache.htrace.core.Tracer;
+import org.apache.hadoop.tracing.TraceScope;
+import org.apache.hadoop.tracing.Tracer;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -1236,16 +1236,18 @@ public class DFSInputStream extends FSInputStream
       final ByteBuffer bb,
       final Map<ExtendedBlock, Set<DatanodeInfo>> corruptedBlockMap,
       final int hedgedReadId) {
-    final SpanId parentSpanId = Tracer.getCurrentSpanId();
+    //TODO: Removing for now need to update this
+    //final SpanId parentSpanId = Tracer.getCurrentSpanId();
+
     return new Callable<ByteBuffer>() {
       @Override
       public ByteBuffer call() throws Exception {
         DFSClientFaultInjector.get().sleepBeforeHedgedGet();
-        try (TraceScope ignored = dfsClient.getTracer().
-            newScope("hedgedRead" + hedgedReadId, parentSpanId)) {
+        //try (TraceScope ignored = dfsClient.getTracer().
+           // newScope("hedgedRead" + hedgedReadId, parentSpanId)) {
           actualGetFromOneDataNode(datanode, start, end, bb, corruptedBlockMap);
           return bb;
-        }
+        //}
       }
     };
   }

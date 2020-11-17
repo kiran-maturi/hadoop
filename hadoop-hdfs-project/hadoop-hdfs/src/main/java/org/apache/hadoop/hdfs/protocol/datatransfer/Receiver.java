@@ -42,9 +42,12 @@ import org.apache.hadoop.hdfs.protocol.proto.DataTransferProtos.ShortCircuitShmR
 import org.apache.hadoop.hdfs.protocolPB.PBHelperClient;
 import org.apache.hadoop.hdfs.server.datanode.CachingStrategy;
 import org.apache.hadoop.hdfs.shortcircuit.ShortCircuitShm.SlotId;
-import org.apache.htrace.core.SpanId;
-import org.apache.htrace.core.TraceScope;
-import org.apache.htrace.core.Tracer;
+import org.apache.hadoop.tracing.Span;
+import org.apache.hadoop.tracing.TraceScope;
+import org.apache.hadoop.tracing.Tracer;
+import org.apache.hadoop.tracing.TraceUtils;
+import com.google.protobuf.ByteString;
+import io.opentracing.SpanContext;
 
 /** Receiver */
 @InterfaceAudience.Private
@@ -73,12 +76,12 @@ public abstract class Receiver implements DataTransferProtocol {
     return Op.read(in);
   }
 
-  private TraceScope continueTraceSpan(DataTransferTraceInfoProto proto,
+  private TraceScope continueTraceSpan(ByteString spanContextBytes,
                                        String description) {
     TraceScope scope = null;
-    SpanId spanId = fromProto(proto);
-    if (spanId != null) {
-      scope = tracer.newScope(description, spanId);
+    SpanContext spanContext = TraceUtils.byteStringToSpanContext(spanContextBytes);
+    if (spanContext != null) {
+      scope = tracer.newScope(description, spanContext);
     }
     return scope;
   }
@@ -90,7 +93,7 @@ public abstract class Receiver implements DataTransferProtocol {
 
   private TraceScope continueTraceSpan(BaseHeaderProto header,
                                              String description) {
-    return continueTraceSpan(header.getTraceInfo(), description);
+    return continueTraceSpan(header.getSpanContext(), description);
   }
 
   /** Process op by the corresponding method. */
@@ -227,7 +230,7 @@ public abstract class Receiver implements DataTransferProtocol {
       throws IOException {
     final ReleaseShortCircuitAccessRequestProto proto =
       ReleaseShortCircuitAccessRequestProto.parseFrom(vintPrefixed(in));
-    TraceScope traceScope = continueTraceSpan(proto.getTraceInfo(),
+    TraceScope traceScope = continueTraceSpan(proto.getSpanContext(),
         proto.getClass().getSimpleName());
     try {
       releaseShortCircuitFds(PBHelperClient.convert(proto.getSlotId()));
@@ -240,7 +243,7 @@ public abstract class Receiver implements DataTransferProtocol {
   private void opRequestShortCircuitShm(DataInputStream in) throws IOException {
     final ShortCircuitShmRequestProto proto =
         ShortCircuitShmRequestProto.parseFrom(vintPrefixed(in));
-    TraceScope traceScope = continueTraceSpan(proto.getTraceInfo(),
+    TraceScope traceScope = continueTraceSpan(proto.getSpanContext(),
         proto.getClass().getSimpleName());
     try {
       requestShortCircuitShm(proto.getClientName());
