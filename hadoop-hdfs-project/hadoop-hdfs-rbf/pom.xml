@@ -47,6 +47,10 @@ https://maven.apache.org/xsd/maven-4.0.0.xsd">
           <groupId>log4j</groupId>
           <artifactId>log4j</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>com.squareup.okio</groupId>
+          <artifactId>okio</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
