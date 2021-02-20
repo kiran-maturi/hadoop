@@ -17,20 +17,27 @@
  */
 package org.apache.hadoop.tracing;
 
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.TracerProvider;
+import io.opentelemetry.sdk.OpenTelemetrySdk;
+import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
+
 /**
  * No-Op Tracer (for now) to remove HTrace without changing too many files.
  */
 public class Tracer {
   // Singleton
-  private static final Tracer globalTracer = null;
+  private static Tracer globalTracer = null;
+  io.opentelemetry.api.trace.Tracer OTelTracer;
   private final NullTraceScope nullTraceScope;
   private final String name;
 
   public final static String SPAN_RECEIVER_CLASSES_KEY =
       "span.receiver.classes";
 
-  public Tracer(String name) {
+  private Tracer(String name, io.opentelemetry.api.trace.Tracer tracer) {
     this.name = name;
+    OTelTracer = tracer;
     nullTraceScope = NullTraceScope.INSTANCE;
   }
 
@@ -49,7 +56,8 @@ public class Tracer {
   }
 
   public TraceScope newScope(String description) {
-    return nullTraceScope;
+    Span span = new Span(OTelTracer.spanBuilder(description).startSpan());
+    return new TraceScope(span);
   }
 
   public Span newSpan(String description, SpanContext spanCtx) {
@@ -90,7 +98,11 @@ public class Tracer {
 
     public Tracer build() {
       if (globalTracer == null) {
-        globalTracer = new Tracer(name);
+        //TODO: Check if nothing is configured it should return no op tracer
+        OpenTelemetrySdk sdk = OpenTelemetrySdkAutoConfiguration.initialize();
+        io.opentelemetry.api.trace.Tracer tracer = sdk.getTracer(name);
+        globalTracer = new Tracer(name, tracer);
+        Tracer.globalTracer = globalTracer;
       }
       return globalTracer;
     }

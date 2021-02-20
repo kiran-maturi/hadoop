@@ -20,8 +20,12 @@ package org.apache.hadoop.tracing;
 import java.io.Closeable;
 
 public class Span implements Closeable {
-
+  io.opentelemetry.api.trace.Span span = null;
   public Span() {
+  }
+
+  public Span(io.opentelemetry.api.trace.Span span){
+    this.span = span;
   }
 
   public Span addKVAnnotation(String key, String value) {
@@ -37,8 +41,12 @@ public class Span implements Closeable {
   }
 
   public void finish() {
+    close();
   }
 
   public void close() {
+    if(span == null){
+      span.end();
+    }
   }
 }
