@@ -21,6 +21,8 @@ import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.thirdparty.protobuf.ByteString;
 
+import java.io.*;
+
 /**
  * This class provides utility functions for tracing.
  */
@@ -38,10 +40,34 @@ public class TraceUtils {
   }
 
   public static SpanContext byteStringToSpanContext(ByteString byteString) {
-    return null;
+    return deserialize(byteString);
   }
 
   public static ByteString spanContextToByteString(SpanContext context) {
-    return null;
+    return serialize(context);
+  }
+
+  //Added this for tracing will remove this after having
+  // a discussion
+  static ByteString serialize(Object obj){
+    try{
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      ObjectOutputStream os = new ObjectOutputStream(out);
+      os.writeObject(obj);
+      byte[] byteArray = out.toByteArray();
+      return ByteString.copyFrom(byteArray);
+    } catch (Exception e){
+      return null;
+    }
+  }
+
+  static SpanContext deserialize(ByteString spanContextByteString) {
+    try {
+      ByteArrayInputStream in = new ByteArrayInputStream(spanContextByteString.toByteArray());
+      ObjectInputStream is = new ObjectInputStream(in);
+      return (SpanContext) is.readObject();
+    } catch (Exception e) {
+      return null;
+    }
   }
 }

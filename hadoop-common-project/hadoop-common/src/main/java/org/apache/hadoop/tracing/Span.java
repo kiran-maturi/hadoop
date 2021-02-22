@@ -37,7 +37,7 @@ public class Span implements Closeable {
   }
 
   public SpanContext getContext() {
-    return null;
+    return  new SpanContext(span.getSpanContext());
   }
 
   public void finish() {

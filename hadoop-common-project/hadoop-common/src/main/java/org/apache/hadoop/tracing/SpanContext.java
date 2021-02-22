@@ -18,15 +18,25 @@
 package org.apache.hadoop.tracing;
 
 import java.io.Closeable;
+import org.apache.hadoop.thirdparty.protobuf.ByteString;
+
 
 /**
  * Wrapper class for SpanContext to avoid using OpenTracing/OpenTelemetry
  * SpanContext class directly for better separation.
  */
-public class SpanContext implements Closeable {
-  public SpanContext() {
+public class SpanContext implements Closeable  {
+  private io.opentelemetry.api.trace.SpanContext spanContext = null;
+  public SpanContext(io.opentelemetry.api.trace.SpanContext spanContext) {
+    this.spanContext = spanContext;
   }
 
   public void close() {
+    //TODO: See if span context needs to be closed;
+
+  }
+
+  public ByteString toByteString(){
+    return spanContext == null? null: TraceUtils.spanContextToByteString(this);
   }
 }
