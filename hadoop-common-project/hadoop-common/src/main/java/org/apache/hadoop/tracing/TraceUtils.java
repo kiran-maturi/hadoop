@@ -20,6 +20,8 @@ package org.apache.hadoop.tracing;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.thirdparty.protobuf.ByteString;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 
@@ -28,6 +30,7 @@ import java.io.*;
  */
 @InterfaceAudience.Private
 public class TraceUtils {
+  public static final Logger LOG = LoggerFactory.getLogger(TraceUtils.class.getName());
   static final String DEFAULT_HADOOP_TRACE_PREFIX = "hadoop.htrace.";
 
   public static TraceConfiguration wrapHadoopConf(final String prefix,
@@ -40,11 +43,15 @@ public class TraceUtils {
   }
 
   public static SpanContext byteStringToSpanContext(ByteString byteString) {
+    LOG.info("Trace deseialized: byteString size: " + byteString.size());
     return deserialize(byteString);
   }
 
   public static ByteString spanContextToByteString(SpanContext context) {
-    return serialize(context);
+
+    ByteString byteString = serialize(context);
+    LOG.info("Trace serialized: byteString size: " + byteString.size());
+    return byteString;
   }
 
   //Added this for tracing will remove this after having
@@ -54,9 +61,11 @@ public class TraceUtils {
       ByteArrayOutputStream out = new ByteArrayOutputStream();
       ObjectOutputStream os = new ObjectOutputStream(out);
       os.writeObject(obj);
+      os.flush();
       byte[] byteArray = out.toByteArray();
       return ByteString.copyFrom(byteArray);
     } catch (Exception e){
+      LOG.error("Error in searializing the object:", e);
       return null;
     }
   }
@@ -67,6 +76,7 @@ public class TraceUtils {
       ObjectInputStream is = new ObjectInputStream(in);
       return (SpanContext) is.readObject();
     } catch (Exception e) {
+      LOG.error("Error in deserializing the object:", e);
       return null;
     }
   }
