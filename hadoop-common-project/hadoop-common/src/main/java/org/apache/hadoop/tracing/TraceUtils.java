@@ -24,6 +24,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class provides utility functions for tracing.
@@ -48,8 +50,9 @@ public class TraceUtils {
   }
 
   public static ByteString spanContextToByteString(SpanContext context) {
-
-    ByteString byteString = serialize(context);
+    Map<String, String> kvMap = context.getKVSpanContext();
+    LOG.info("KV Map: " + kvMap.toString());
+    ByteString byteString = serialize(kvMap);
     LOG.info("Trace serialized: byteString size: " + byteString.size());
     return byteString;
   }
@@ -74,7 +77,8 @@ public class TraceUtils {
     try {
       ByteArrayInputStream in = new ByteArrayInputStream(spanContextByteString.toByteArray());
       ObjectInputStream is = new ObjectInputStream(in);
-      return (SpanContext) is.readObject();
+      Map<String, String> kvMap = (Map<String, String>) is.readObject();
+      return SpanContext.buildFromKVMap(kvMap);
     } catch (Exception e) {
       LOG.error("Error in deserializing the object:", e);
       return null;

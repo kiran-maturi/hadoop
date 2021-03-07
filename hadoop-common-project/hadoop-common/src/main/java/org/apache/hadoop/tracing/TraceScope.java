@@ -22,11 +22,9 @@ import io.opentelemetry.context.Scope;
 import java.io.Closeable;
 
 public class TraceScope implements Closeable {
-  Scope scope;
   Span span;
 
-  public TraceScope(Scope scope, Span span) {
-    this.scope = scope;
+  public TraceScope(Span span) {
     this.span = span;
   }
 

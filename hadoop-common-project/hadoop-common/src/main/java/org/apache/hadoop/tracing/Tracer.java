@@ -71,7 +71,7 @@ public class Tracer {
     Span span = new Span(OTelTracer.spanBuilder(description).startSpan());
     Scope scope = span.span.makeCurrent();
     LOG.info("New span created for the desc: " + description + " span is null: " + String.valueOf(span == null));
-    return new TraceScope(scope, span);
+    return new TraceScope(span);
   }
 
   public Span newSpan(String description, SpanContext spanCtx) {
