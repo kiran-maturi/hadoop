@@ -56,6 +56,7 @@ public class SpanContext implements Closeable  {
       kvMap.put(SPAN_ID, spanContext.getSpanId());
       kvMap.put(TRACE_FLAGS, spanContext.getTraceFlags().asHex());
       kvMap.putAll(spanContext.getTraceState().asMap());
+      return kvMap;
     }
     return null;
   }
@@ -68,7 +69,7 @@ public class SpanContext implements Closeable  {
     String traceFlagsHex = kvMap.get(TRACE_FLAGS);
     kvMap.remove(TRACE_FLAGS);
     //TODO: Understand how trace flags work and check this code
-    TraceFlags traceFlags = TraceFlags.fromHex(traceFlagsHex, TraceFlags.getLength());
+    TraceFlags traceFlags = TraceFlags.fromHex(traceFlagsHex, 0);
     TraceStateBuilder traceStateBuilder = TraceState.builder();
     for(Map.Entry<String, String> keyValue: kvMap.entrySet()){
       traceStateBuilder.put(keyValue.getKey(), keyValue.getValue());
@@ -79,7 +80,7 @@ public class SpanContext implements Closeable  {
     return new SpanContext(spanContext);
   }
 
-  public ByteString toByteString(){
-    return spanContext == null? null: TraceUtils.spanContextToByteString(this);
+  public io.opentelemetry.api.trace.SpanContext getSpanContext() {
+    return spanContext;
   }
 }

@@ -23,9 +23,12 @@ import java.io.Closeable;
 
 public class TraceScope implements Closeable {
   Span span;
-
+  Scope scope;
   public TraceScope(Span span) {
     this.span = span;
+    if(span != null){
+      this.scope = span.span.makeCurrent();
+    }
   }
 
   // Add tag to the span
@@ -55,6 +58,7 @@ public class TraceScope implements Closeable {
 
   public void close() {
     if (span != null) {
+      scope.close();
       span.close();
     }
   }

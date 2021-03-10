@@ -45,7 +45,7 @@ public class Span implements Closeable {
   }
 
   public void close() {
-    if(span == null){
+    if(span != null){
       span.end();
     }
   }

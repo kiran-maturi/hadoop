@@ -17,17 +17,13 @@
  */
 package org.apache.hadoop.tracing;
 
-import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.api.trace.TracerProvider;
-import io.opentelemetry.context.Scope;
-import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.exporter.logging.LoggingSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -69,17 +65,18 @@ public class Tracer {
 
   public TraceScope newScope(String description) {
     Span span = new Span(OTelTracer.spanBuilder(description).startSpan());
-    Scope scope = span.span.makeCurrent();
     LOG.info("New span created for the desc: " + description + " span is null: " + String.valueOf(span == null));
     return new TraceScope(span);
   }
 
   public Span newSpan(String description, SpanContext spanCtx) {
-    return new Span();
+    io.opentelemetry.api.trace.Span parentSpan = io.opentelemetry.api.trace.Span.wrap(spanCtx.getSpanContext());
+    io.opentelemetry.api.trace.Span span = OTelTracer.spanBuilder(description).setParent(Context.current().with(parentSpan)).startSpan();
+    return new Span(span);
   }
 
   public TraceScope newScope(String description, SpanContext spanCtx) {
-    return nullTraceScope;
+    return new TraceScope(newSpan(description, spanCtx));
   }
 
   public TraceScope newScope(String description, SpanContext spanCtx,
@@ -117,7 +114,8 @@ public class Tracer {
         Properties properties = System.getProperties();
         properties.setProperty(OTEL_METRICS_ENV_VARIABLE, "none");
         properties.setProperty("otel.traces.exporter", "jaeger");
-        properties.setProperty("otel.exporter.jaeger.service.name", "jaegar-service");
+        properties.setProperty("otel.exporter.jaeger.service.name", name);
+
         LoggingSpanExporter loggingSpanExporter = new LoggingSpanExporter();
         //TODO: Check if nothing is configured it should return no op tracer
         OpenTelemetrySdk sdk = OpenTelemetrySdkAutoConfiguration.initialize();
