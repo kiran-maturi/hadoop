@@ -17,14 +17,24 @@
  */
 package org.apache.hadoop.tracing;
 
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
 import io.opentelemetry.exporter.logging.LoggingSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
+import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Properties;
+import java.util.concurrent.TimeUnit;
 
 /**
  * No-Op Tracer (for now) to remove HTrace without changing too many files.
@@ -81,11 +91,11 @@ public class Tracer {
 
   public TraceScope newScope(String description, SpanContext spanCtx,
       boolean finishSpanOnClose) {
-    return nullTraceScope;
+    return new TraceScope(newSpan(description, spanCtx));
   }
 
   public TraceScope activateSpan(Span span) {
-    return nullTraceScope;
+    return new TraceScope(span);
   }
 
   public void close() {
@@ -107,19 +117,39 @@ public class Tracer {
       return this;
     }
 
+    OpenTelemetry initialiseJaegerExporter(String jaegerHost, int jaegerPort, String name) {
+      ManagedChannel jaegerChannel =
+          ManagedChannelBuilder.forAddress(jaegerHost, jaegerPort).usePlaintext().build();
+      // Export traces to Jaeger
+      JaegerGrpcSpanExporter jaegerExporter =
+          JaegerGrpcSpanExporter.builder()
+              .setChannel(jaegerChannel)
+              .setTimeout(30, TimeUnit.SECONDS)
+              .build();
+
+      Resource serviceNameResource =
+          Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, name));
+
+      // Set to process the spans by the Jaeger Exporter
+      SdkTracerProvider tracerProvider =
+          SdkTracerProvider.builder()
+              .addSpanProcessor(SimpleSpanProcessor.create(jaegerExporter))
+              .setResource(Resource.getDefault().merge(serviceNameResource))
+              .build();
+      OpenTelemetrySdk openTelemetry =
+          OpenTelemetrySdk.builder().setTracerProvider(tracerProvider).build();
+
+      // it's always a good idea to shut down the SDK cleanly at JVM exit.
+      Runtime.getRuntime().addShutdownHook(new Thread(tracerProvider::close));
+
+      return openTelemetry;
+    }
+
     public Tracer build() {
       if (globalTracer == null) {
         LOG.info("Tracer created:");
-        //TODO: Move this to config
-        Properties properties = System.getProperties();
-        properties.setProperty(OTEL_METRICS_ENV_VARIABLE, "none");
-        properties.setProperty("otel.traces.exporter", "jaeger");
-        properties.setProperty("otel.exporter.jaeger.service.name", name);
-
-        LoggingSpanExporter loggingSpanExporter = new LoggingSpanExporter();
-        //TODO: Check if nothing is configured it should return no op tracer
-        OpenTelemetrySdk sdk = OpenTelemetrySdkAutoConfiguration.initialize();
-        io.opentelemetry.api.trace.Tracer tracer = sdk.getTracer(name);
+        OpenTelemetry openTelemetry = initialiseJaegerExporter("localhost", 14250, name);
+        io.opentelemetry.api.trace.Tracer tracer = openTelemetry.getTracer(name);
         globalTracer = new Tracer(name, tracer);
         Tracer.globalTracer = globalTracer;
       }
