@@ -23,22 +23,23 @@ import java.io.Closeable;
 
 public class TraceScope implements Closeable {
   Span span;
-  Scope scope;
   public TraceScope(Span span) {
     this.span = span;
-    if(span != null){
-      this.scope = span.span.makeCurrent();
-    }
   }
 
   // Add tag to the span
   public void addKVAnnotation(String key, String value) {
+    span.addKVAnnotation(key, value);
   }
 
   public void addKVAnnotation(String key, Number value) {
+    //TODO: Check if this needs to be modified
+    span.addKVAnnotation(key, value.toString());
   }
 
+
   public void addTimelineAnnotation(String msg) {
+    span.addTimelineAnnotation(msg);
   }
 
   //TODO: Remove these methods
@@ -58,7 +59,6 @@ public class TraceScope implements Closeable {
 
   public void close() {
     if (span != null) {
-      scope.close();
       span.close();
     }
   }

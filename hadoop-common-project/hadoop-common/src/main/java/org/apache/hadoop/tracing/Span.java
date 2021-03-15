@@ -17,6 +17,9 @@
  */
 package org.apache.hadoop.tracing;
 
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.common.AttributesBuilder;
+
 import java.io.Closeable;
 
 public class Span implements Closeable {
@@ -29,10 +32,16 @@ public class Span implements Closeable {
   }
 
   public Span addKVAnnotation(String key, String value) {
+    if(span != null){
+      span.setAttribute(key, value);
+    }
     return this;
   }
 
   public Span addTimelineAnnotation(String msg) {
+    if(span != null){
+      span.addEvent(msg);
+    }
     return this;
   }
 

@@ -26,13 +26,15 @@ import io.opentelemetry.api.trace.TraceFlags;
 import io.opentelemetry.api.trace.TraceState;
 import io.opentelemetry.api.trace.TraceStateBuilder;
 import org.apache.hadoop.thirdparty.protobuf.ByteString;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Wrapper class for SpanContext to avoid using OpenTracing/OpenTelemetry
  * SpanContext class directly for better separation.
  */
 public class SpanContext implements Closeable  {
+  public static final Logger LOG = LoggerFactory.getLogger(SpanContext.class.getName());
   private static final String TRACE_ID = "TRACE_ID";
   private static final String SPAN_ID = "SPAN_ID";
   private static final String TRACE_FLAGS = "TRACE_FLAGS";
@@ -74,6 +76,7 @@ public class SpanContext implements Closeable  {
     for(Map.Entry<String, String> keyValue: kvMap.entrySet()){
       traceStateBuilder.put(keyValue.getKey(), keyValue.getValue());
     }
+    LOG.info(String.format("Remote TraceId: %s, SpanId: %s,", traceId, spanId));
     TraceState traceState = traceStateBuilder.build();
     io.opentelemetry.api.trace.SpanContext spanContext = io.opentelemetry.api.trace.SpanContext.createFromRemoteParent(traceId, spanId, traceFlags, traceState );
 
