@@ -37,7 +37,6 @@ public class TraceScope implements Closeable {
   }
 
   public void addKVAnnotation(String key, Number value) {
-    //TODO: Check if this needs to be modified
     span.addKVAnnotation(key, value.toString());
   }
 
@@ -46,7 +45,6 @@ public class TraceScope implements Closeable {
     span.addTimelineAnnotation(msg);
   }
 
-  //TODO: Remove these methods
   public Span span() {
     return span;
   }
