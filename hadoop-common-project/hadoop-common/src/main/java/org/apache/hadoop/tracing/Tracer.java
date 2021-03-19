@@ -20,20 +20,18 @@ package org.apache.hadoop.tracing;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.context.Scope;
 import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
-import io.opentelemetry.exporter.logging.LoggingSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
-import io.opentelemetry.sdk.autoconfigure.OpenTelemetrySdkAutoConfiguration;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
-import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -43,7 +41,6 @@ public class Tracer {
   public static final Logger LOG = LoggerFactory.getLogger(Tracer.class.getName());
   // Singleton
   private static Tracer globalTracer = null;
-  private static String OTEL_METRICS_ENV_VARIABLE = "otel.metrics.exporter";
   io.opentelemetry.api.trace.Tracer OTelTracer;
   private final NullTraceScope nullTraceScope;
   private final String name;
@@ -69,13 +66,11 @@ public class Tracer {
    */
   public static Span getCurrentSpan() {
     io.opentelemetry.api.trace.Span span = io.opentelemetry.api.trace.Span.current();
-    LOG.info("Current span: " + span.toString() + " is valid: " + span.getSpanContext().isValid());
     return span.getSpanContext().isValid()? new Span(span): null;
   }
 
   public TraceScope newScope(String description) {
     Span span = new Span(OTelTracer.spanBuilder(description).startSpan());
-    LOG.info("New span created for the desc: " + description + " span is null: " + String.valueOf(span == null));
     return new TraceScope(span);
   }
 
@@ -126,10 +121,8 @@ public class Tracer {
               .setChannel(jaegerChannel)
               .setTimeout(30, TimeUnit.SECONDS)
               .build();
-
       Resource serviceNameResource =
-          Resource.create(Attributes.of(ResourceAttributes.SERVICE_NAME, name));
-
+          Resource.create(Attributes.of(AttributeKey.stringKey("service.name"), name));
       // Set to process the spans by the Jaeger Exporter
       SdkTracerProvider tracerProvider =
           SdkTracerProvider.builder()
@@ -145,12 +138,19 @@ public class Tracer {
       return openTelemetry;
     }
 
+    OpenTelemetry noOpTracer(){
+      return OpenTelemetry.noop();
+    }
+
     public Tracer build() {
       if (globalTracer == null) {
-        LOG.info("Tracer created:");
+        LOG.info("Tracer created:", name);
+        //jaeger tracing changes
         OpenTelemetry openTelemetry = initialiseJaegerExporter("localhost", 14250, name);
         io.opentelemetry.api.trace.Tracer tracer = openTelemetry.getTracer(name);
         globalTracer = new Tracer(name, tracer);
+
+        //globalTracer = new Tracer(name, noOpTracer().getTracer(name));
         Tracer.globalTracer = globalTracer;
       }
       return globalTracer;

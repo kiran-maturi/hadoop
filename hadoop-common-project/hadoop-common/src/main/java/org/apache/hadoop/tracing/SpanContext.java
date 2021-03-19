@@ -76,7 +76,6 @@ public class SpanContext implements Closeable  {
     for(Map.Entry<String, String> keyValue: kvMap.entrySet()){
       traceStateBuilder.put(keyValue.getKey(), keyValue.getValue());
     }
-    LOG.info(String.format("Remote TraceId: %s, SpanId: %s,", traceId, spanId));
     TraceState traceState = traceStateBuilder.build();
     io.opentelemetry.api.trace.SpanContext spanContext = io.opentelemetry.api.trace.SpanContext.createFromRemoteParent(traceId, spanId, traceFlags, traceState );
 

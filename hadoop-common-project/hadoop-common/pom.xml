@@ -374,27 +374,22 @@
     <dependency>
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-api</artifactId>
-      <version>0.17.0</version>
+      <version>1.0.0</version>
     </dependency>
     <dependency>
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-sdk</artifactId>
-      <version>0.17.0</version>
+      <version>1.0.0</version>
     </dependency>
     <dependency>
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-sdk-extension-autoconfigure</artifactId>
-      <version>0.17.0-alpha</version>
-    </dependency>
-    <dependency>
-      <groupId>io.opentelemetry</groupId>
-      <artifactId>opentelemetry-exporter-logging</artifactId>
-      <version>0.17.1</version>
+      <version>1.0.0-alpha</version>
     </dependency>
     <dependency>
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-exporter-jaeger</artifactId>
-      <version>0.17.1</version>
+      <version>1.0.0</version>
     </dependency>
     <dependency>
       <groupId>io.grpc</groupId>
@@ -404,7 +399,7 @@
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
-      <version>3.14.0</version>
+      <version>${hadoop.protobuf.version}</version>
     </dependency>
 
   </dependencies>

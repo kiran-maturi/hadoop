@@ -17,8 +17,7 @@
  */
 package org.apache.hadoop.tracing;
 
-import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.common.AttributesBuilder;
+import io.opentelemetry.context.Scope;
 
 import java.io.Closeable;
 
@@ -57,5 +56,12 @@ public class Span implements Closeable {
     if(span != null){
       span.end();
     }
+  }
+
+  public Scope makeCurrent() {
+    if(span != null){
+      return span.makeCurrent();
+    }
+    return null;
   }
 }
