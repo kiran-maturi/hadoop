@@ -23,7 +23,6 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.context.Scope;
 import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
@@ -144,7 +143,6 @@ public class Tracer {
 
     public Tracer build() {
       if (globalTracer == null) {
-        LOG.info("Tracer created:", name);
         //jaeger tracing changes
         OpenTelemetry openTelemetry = initialiseJaegerExporter("localhost", 14250, name);
         io.opentelemetry.api.trace.Tracer tracer = openTelemetry.getTracer(name);

@@ -45,21 +45,12 @@ public class TraceUtils {
   }
 
   public static SpanContext byteStringToSpanContext(ByteString byteString) {
-    if(byteString != null){
-      LOG.info("Trace deseialized: byteString size: " + byteString.size());
-    }
     return deserialize(byteString);
   }
 
   public static ByteString spanContextToByteString(SpanContext context) {
     Map<String, String> kvMap = context.getKVSpanContext();
-    if(kvMap != null){
-      LOG.info("KV Map: " + kvMap.toString());
-    }
     ByteString byteString = serialize(kvMap);
-    if(byteString != null){
-      LOG.info("Trace serialized: byteString size: " + byteString.size());
-    }
     return byteString;
   }
 

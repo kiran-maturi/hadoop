@@ -46,7 +46,6 @@ public class SpanContext implements Closeable  {
   }
 
   public void close() {
-    //TODO: See if span context needs to be closed;
 
   }
 
@@ -70,7 +69,6 @@ public class SpanContext implements Closeable  {
     kvMap.remove(SPAN_ID);
     String traceFlagsHex = kvMap.get(TRACE_FLAGS);
     kvMap.remove(TRACE_FLAGS);
-    //TODO: Understand how trace flags work and check this code
     TraceFlags traceFlags = TraceFlags.fromHex(traceFlagsHex, 0);
     TraceStateBuilder traceStateBuilder = TraceState.builder();
     for(Map.Entry<String, String> keyValue: kvMap.entrySet()){
@@ -83,6 +81,6 @@ public class SpanContext implements Closeable  {
   }
 
   public io.opentelemetry.api.trace.SpanContext getSpanContext() {
-    return spanContext;
+      return spanContext;
   }
 }
