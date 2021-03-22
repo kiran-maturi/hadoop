@@ -510,7 +510,7 @@ public abstract class FileSystem extends Configured
    * </li>
    * <li>
    *   Otherwise: a new FS instance will be created, initialized with the
-   *   configuration and URI, cached and returned to the caller.
+   *   configuration and URI, cached and returned to the caller
    * </li>
    * </ol>
    * @throws IOException if the FileSystem cannot be instantiated.
