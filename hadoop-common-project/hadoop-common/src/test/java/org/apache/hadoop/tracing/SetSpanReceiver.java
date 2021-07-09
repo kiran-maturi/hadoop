@@ -19,10 +19,7 @@ package org.apache.hadoop.tracing;
 
 import com.google.common.base.Supplier;
 import org.apache.hadoop.test.GenericTestUtils;
-import org.apache.htrace.core.Span;
-import org.apache.htrace.core.SpanId;
-import org.apache.htrace.core.SpanReceiver;
-import org.apache.htrace.core.HTraceConfiguration;
+import org.apache.hadoop.tracing.Span;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -40,6 +37,7 @@ import org.junit.Assert;
  * push all the metrics to a static place, and would make testing
  * SpanReceiverHost harder.
  */
+/*
 public class SetSpanReceiver extends SpanReceiver {
 
   public SetSpanReceiver(HTraceConfiguration conf) {
@@ -107,4 +105,6 @@ public class SetSpanReceiver extends SpanReceiver {
       Assert.fail("interrupted while waiting spans: " + e.getMessage());
     }
   }
+
 }
+ */

@@ -25,7 +25,7 @@ import org.apache.hadoop.hdfs.protocol.datatransfer.sasl.SaslDataTransferTestCas
 import org.apache.hadoop.hdfs.server.datanode.DataNode;
 import org.apache.hadoop.net.unix.TemporarySocketDirectory;
 import org.apache.hadoop.security.UserGroupInformation;
-import org.apache.htrace.core.Tracer;
+import org.apache.hadoop.tracing.Tracer;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -42,6 +42,7 @@ import static org.junit.Assert.assertEquals;
  * Test cases for TraceAdmin.
  */
 public class TestTraceAdmin extends SaslDataTransferTestCase {
+  /*
   private static final String NEWLINE = System.getProperty("line.separator");
   private final static int ONE_DATANODE = 1;
 
@@ -136,6 +137,7 @@ public class TestTraceAdmin extends SaslDataTransferTestCase {
    *
    * @throws Exception
    */
+  /*
   @Test
   public void testKerberizedTraceAdmin() throws Exception {
     MiniDFSCluster cluster = null;
@@ -177,4 +179,5 @@ public class TestTraceAdmin extends SaslDataTransferTestCase {
       }
     }
   }
+  */
 }

@@ -52,7 +52,7 @@ import org.apache.hadoop.util.DiskChecker;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-import org.apache.htrace.core.Tracer;
+import org.apache.hadoop.tracing.Tracer;
 import org.mortbay.util.ajax.JSON;
 
 import com.google.common.base.Preconditions;

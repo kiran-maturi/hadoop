@@ -34,9 +34,10 @@ import org.apache.hadoop.hdfs.protocolPB.PBHelperClient;
 import org.apache.hadoop.hdfs.security.token.block.BlockTokenIdentifier;
 import org.apache.hadoop.hdfs.security.token.block.InvalidBlockTokenException;
 import org.apache.hadoop.security.token.Token;
+import org.apache.hadoop.tracing.Span;
+import org.apache.hadoop.tracing.TraceUtils;
 import org.apache.hadoop.util.DataChecksum;
-import org.apache.htrace.core.SpanId;
-import org.apache.htrace.core.Tracer;
+import org.apache.hadoop.tracing.Tracer;
 
 /**
  * Static utilities for dealing with the protocol buffers used by the
@@ -87,21 +88,12 @@ public abstract class DataTransferProtoUtil {
     BaseHeaderProto.Builder builder =  BaseHeaderProto.newBuilder()
         .setBlock(PBHelperClient.convert(blk))
         .setToken(PBHelperClient.convert(blockToken));
-    SpanId spanId = Tracer.getCurrentSpanId();
-    if (spanId.isValid()) {
+    Span span = Tracer.getCurrentSpan();
+    if (span != null) {
       builder.setTraceInfo(DataTransferTraceInfoProto.newBuilder()
-          .setTraceId(spanId.getHigh())
-          .setParentId(spanId.getLow()));
+          .setSpanContext(TraceUtils.spanContextToByteString(span.getContext())));
     }
     return builder.build();
-  }
-
-  public static SpanId fromProto(DataTransferTraceInfoProto proto) {
-    if ((proto != null) && proto.hasTraceId() &&
-          proto.hasParentId()) {
-      return new SpanId(proto.getTraceId(), proto.getParentId());
-    }
-    return null;
   }
 
   public static void checkBlockOpStatus(

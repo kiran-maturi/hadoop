@@ -17,30 +17,7 @@
  */
 package org.apache.hadoop.tracing;
 
-import org.apache.hadoop.classification.InterfaceAudience;
-import org.apache.hadoop.conf.Configuration;
-
-/**
- * This class provides utility functions for tracing.
- */
-@InterfaceAudience.Private
-public class TraceUtils {
-  static final String DEFAULT_HADOOP_TRACE_PREFIX = "hadoop.htrace.";
-
-  public static TraceConfiguration wrapHadoopConf(final String prefix,
-      final Configuration conf) {
-    return null;
-  }
-
-  public static Tracer createAndRegisterTracer(String name) {
-    return null;
-  }
-
-  public static SpanContext byteStringToSpanContext(com.google.protobuf.ByteString byteString) {
-    return null;
-  }
-
-  public static com.google.protobuf.ByteString spanContextToByteString(SpanContext context) {
-    return null;
+public class TraceConfiguration {
+  public TraceConfiguration() {
   }
 }

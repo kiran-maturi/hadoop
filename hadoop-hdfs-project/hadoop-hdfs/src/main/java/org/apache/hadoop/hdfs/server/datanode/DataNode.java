@@ -107,7 +107,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.StorageType;
 import org.apache.hadoop.hdfs.DFSConfigKeys;
 import org.apache.hadoop.hdfs.DFSUtil;
-import org.apache.hadoop.hdfs.DFSUtil.ConfiguredNNAddress;
 import org.apache.hadoop.hdfs.DFSUtilClient;
 import org.apache.hadoop.hdfs.HDFSPolicyProvider;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
@@ -195,13 +194,7 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.UserGroupInformation.AuthenticationMethod;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.TokenIdentifier;
-import org.apache.hadoop.tracing.SpanReceiverInfo;
-import org.apache.hadoop.tracing.TraceAdminPB.TraceAdminService;
-import org.apache.hadoop.tracing.TraceAdminProtocol;
-import org.apache.hadoop.tracing.TraceAdminProtocolPB;
-import org.apache.hadoop.tracing.TraceAdminProtocolServerSideTranslatorPB;
 import org.apache.hadoop.tracing.TraceUtils;
-import org.apache.hadoop.tracing.TracerConfigurationManager;
 import org.apache.hadoop.util.AutoCloseableLock;
 import org.apache.hadoop.util.Daemon;
 import org.apache.hadoop.util.DiskChecker.DiskErrorException;
@@ -213,7 +206,7 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.Time;
 import org.apache.hadoop.util.Timer;
 import org.apache.hadoop.util.VersionInfo;
-import org.apache.htrace.core.Tracer;
+import org.apache.hadoop.tracing.Tracer;
 import org.mortbay.util.ajax.JSON;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -262,7 +255,7 @@ import org.slf4j.LoggerFactory;
 @InterfaceAudience.Private
 public class DataNode extends ReconfigurableBase
     implements InterDatanodeProtocol, ClientDatanodeProtocol,
-        TraceAdminProtocol, DataNodeMXBean, ReconfigurationProtocol {
+         DataNodeMXBean, ReconfigurationProtocol {
   public static final Logger LOG = LoggerFactory.getLogger(DataNode.class);
 
   static{
@@ -389,7 +382,6 @@ public class DataNode extends ReconfigurableBase
   private String dnUserName = null;
   private BlockRecoveryWorker blockRecoveryWorker;
   final Tracer tracer;
-  private final TracerConfigurationManager tracerConfigurationManager;
   private static final int NUM_CORES = Runtime.getRuntime()
       .availableProcessors();
   private static final double CONGESTION_RATIO = 1.5;
@@ -418,8 +410,6 @@ public class DataNode extends ReconfigurableBase
     super(conf);
     this.blockScanner = new BlockScanner(this, conf);
     this.tracer = createTracer(conf);
-    this.tracerConfigurationManager =
-        new TracerConfigurationManager(DATANODE_HTRACE_PREFIX, conf);
     this.fileIoProvider = new FileIoProvider(conf, this);
     this.fileDescriptorPassingDisabledReason = null;
     this.maxNumberOfBlocksToLog = 0;
@@ -444,8 +434,6 @@ public class DataNode extends ReconfigurableBase
            final SecureResources resources) throws IOException {
     super(conf);
     this.tracer = createTracer(conf);
-    this.tracerConfigurationManager =
-        new TracerConfigurationManager(DATANODE_HTRACE_PREFIX, conf);
     this.fileIoProvider = new FileIoProvider(conf, this);
     this.blockScanner = new BlockScanner(this);
     this.lastDiskErrorCheck = 0;
@@ -1026,16 +1014,6 @@ public class DataNode extends ReconfigurableBase
     service = InterDatanodeProtocolService
         .newReflectiveBlockingService(interDatanodeProtocolXlator);
     DFSUtil.addPBProtocol(getConf(), InterDatanodeProtocolPB.class, service,
-        ipcServer);
-
-    TraceAdminProtocolServerSideTranslatorPB traceAdminXlator =
-        new TraceAdminProtocolServerSideTranslatorPB(this);
-    BlockingService traceAdminService = TraceAdminService
-        .newReflectiveBlockingService(traceAdminXlator);
-    DFSUtil.addPBProtocol(
-        getConf(),
-        TraceAdminProtocolPB.class,
-        traceAdminService,
         ipcServer);
 
     LOG.info("Opened IPC server at " + ipcServer.getListenerAddress());
@@ -3307,24 +3285,6 @@ public class DataNode extends ReconfigurableBase
   @VisibleForTesting
   public long getLastDiskErrorCheck() {
     return lastDiskErrorCheck;
-  }
-
-  @Override
-  public SpanReceiverInfo[] listSpanReceivers() throws IOException {
-    checkSuperuserPrivilege();
-    return tracerConfigurationManager.listSpanReceivers();
-  }
-
-  @Override
-  public long addSpanReceiver(SpanReceiverInfo info) throws IOException {
-    checkSuperuserPrivilege();
-    return tracerConfigurationManager.addSpanReceiver(info);
-  }
-
-  @Override
-  public void removeSpanReceiver(long id) throws IOException {
-    checkSuperuserPrivilege();
-    tracerConfigurationManager.removeSpanReceiver(id);
   }
 
   public BlockRecoveryWorker getBlockRecoveryWorker() {

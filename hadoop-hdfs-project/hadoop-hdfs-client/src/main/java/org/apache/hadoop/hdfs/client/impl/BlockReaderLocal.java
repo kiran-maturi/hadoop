@@ -35,8 +35,8 @@ import org.apache.hadoop.hdfs.shortcircuit.ClientMmap;
 import org.apache.hadoop.hdfs.shortcircuit.ShortCircuitReplica;
 import org.apache.hadoop.util.DataChecksum;
 import org.apache.hadoop.util.DirectBufferPool;
-import org.apache.htrace.core.TraceScope;
-import org.apache.htrace.core.Tracer;
+import org.apache.hadoop.tracing.TraceScope;
+import org.apache.hadoop.tracing.Tracer;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;

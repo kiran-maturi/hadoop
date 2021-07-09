@@ -101,8 +101,8 @@ the tracing information is propagated to servers along with RPC requests.
 
 ```java
     import org.apache.hadoop.hdfs.HdfsConfiguration;
-    import org.apache.htrace.core.Tracer;
-    import org.apache.htrace.core.TraceScope;
+    import org.apache.hadoop.tracing.Tracer;
+    import org.apache.hadoop.tracing.TraceScope;
 
     ...
 
@@ -130,8 +130,8 @@ which start tracing span before invoking HDFS shell command.
     import org.apache.hadoop.tracing.TraceUtils;
     import org.apache.hadoop.util.Tool;
     import org.apache.hadoop.util.ToolRunner;
-    import org.apache.htrace.core.Tracer;
-    import org.apache.htrace.core.TraceScope;
+    import org.apache.hadoop.tracing.Tracer;
+    import org.apache.hadoop.tracing.TraceScope;
     
     public class Sample extends Configured implements Tool {
       @Override

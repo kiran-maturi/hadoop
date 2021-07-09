@@ -83,12 +83,12 @@ import org.apache.hadoop.ipc.RetriableException;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.security.token.SecretManager.InvalidToken;
 import org.apache.hadoop.security.token.Token;
+import org.apache.hadoop.tracing.Span;
 import org.apache.hadoop.util.IdentityHashStore;
 import org.apache.hadoop.util.StopWatch;
 import org.apache.hadoop.util.StringUtils;
-import org.apache.htrace.core.SpanId;
-import org.apache.htrace.core.TraceScope;
-import org.apache.htrace.core.Tracer;
+import org.apache.hadoop.tracing.TraceScope;
+import org.apache.hadoop.tracing.Tracer;
 
 import com.google.common.annotations.VisibleForTesting;
 
@@ -1236,13 +1236,13 @@ public class DFSInputStream extends FSInputStream
       final ByteBuffer bb,
       final Map<ExtendedBlock, Set<DatanodeInfo>> corruptedBlockMap,
       final int hedgedReadId) {
-    final SpanId parentSpanId = Tracer.getCurrentSpanId();
+    final Span parentSpan = Tracer.getCurrentSpan();
     return new Callable<ByteBuffer>() {
       @Override
       public ByteBuffer call() throws Exception {
         DFSClientFaultInjector.get().sleepBeforeHedgedGet();
         try (TraceScope ignored = dfsClient.getTracer().
-            newScope("hedgedRead" + hedgedReadId, parentSpanId)) {
+            newScope("hedgedRead" + hedgedReadId, parentSpan.getContext())) {
           actualGetFromOneDataNode(datanode, start, end, bb, corruptedBlockMap);
           return bb;
         }

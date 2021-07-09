@@ -55,7 +55,8 @@ import org.apache.hadoop.hdfs.server.protocol.DatanodeStorage;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.test.GenericTestUtils;
 import org.apache.hadoop.test.PathUtils;
-import org.apache.htrace.core.SpanId;
+import org.apache.hadoop.tracing.Span;
+import org.apache.hadoop.tracing.SpanContext;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -292,7 +293,7 @@ public class TestDFSOutputStream {
         Whitebox.getInternalState(stream, "congestedNodes");
     congestedNodes.add(mock(DatanodeInfo.class));
     DFSPacket packet = mock(DFSPacket.class);
-    when(packet.getTraceParents()).thenReturn(new SpanId[] {});
+    when(packet.getTraceParents()).thenReturn(new SpanContext[] {});
     dataQueue.add(packet);
     stream.run();
     Assert.assertTrue(congestedNodes.isEmpty());
